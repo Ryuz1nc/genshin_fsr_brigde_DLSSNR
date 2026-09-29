@@ -248,3 +248,23 @@ Bridge 和反虚化组件默认会保留错误日志（接入 OptiScaler/ReShade
 ## 许可证
 
 本项目采用 [GPL-3.0-or-later](Dx11FsrBridge/LICENSE)。你可以使用、修改和再分发代码；分发修改版本时必须同时提供对应完整源码，并以 GPL-3.0-or-later 发布。
+
+## DLSSNR / ReShade 插件包（本 fork 附件）
+
+本 fork 的 Release 附件中增加了一个基于 Genshin FSR Bridge v2.3.0 的 DLSSNR / ReShade 兼容包：
+
+- `GenshinFSRBridge_v2.3.0_NR_ReShade.zip`
+- 内置 AMD Neural Rendering ReShade add-on v0.7.2 的中文重编译版本；在 ReShade 的 **Home -> Add-ons -> AMD Neural Rendering -> Language** 中选择 `中文`。
+- 保留 `AMD_Neural_Feed.fx`、`dlssnr_amd_pass1.dll` 和 `dlssnr_on_amd_weights.bin`，安装器会在复制运行时文件前逐项检查大小和 SHA-256。
+- 原有 Bridge、OptiScaler、AntiPlayerMosaic、TextureLoader 等组件保持原包结构，不替换原神客户端文件。
+- 中文界面使用 UTF-8；如果 ReShade/ImGui 当前字体没有 CJK 字形，中文可能显示为空框。此插件包没有捆绑字体文件。
+
+本次附件中的 `amd-nr.addon64`：
+
+```text
+大小：702976 字节
+SHA-256：23F1829EA6273C86AE4119950F7CCFF8C9C0934BFF9AFB0B65E8BAAA5BD01133
+```
+
+该 DLL 使用 Visual Studio MSVC 和 Windows SDK 重新编译，并通过面板测试；发布包内的
+`scripts/NeuralRendering.ps1`、`AMD-NR-SHA256SUMS.txt` 和 `AMD-NR-README.md` 已同步更新。
