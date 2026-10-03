@@ -251,10 +251,10 @@ Bridge 和反虚化组件默认会保留错误日志（接入 OptiScaler/ReShade
 
 ## DLSSNR / ReShade 插件包（本 fork 附件）
 
-本 fork 的 Release 附件中增加了一个基于 Genshin FSR Bridge v2.3.0 的 DLSSNR / ReShade 兼容包：
+本 fork 的 Release 附件中增加了一个基于 Genshin FSR Bridge v2.3.1 的 DLSSNR / ReShade 兼容包：
 
-- `GenshinFSRBridge_v2.3.0_NR_ReShade.zip`
-- 内置 AMD Neural Rendering ReShade add-on v0.7.2 的中文重编译版本；在 ReShade 的 **Home -> Add-ons -> AMD Neural Rendering -> Language** 中选择 `中文`。
+- `GenshinFSRBridge_v2.3.1_NR_ReShade.zip`
+- 内置 AMD Neural Rendering ReShade add-on v0.7.8 的中文重编译版本；在 ReShade 的 **Home -> Add-ons -> AMD Neural Rendering -> Language** 中选择 `中文`。
 - 保留 `AMD_Neural_Feed.fx`、`dlssnr_amd_pass1.dll` 和 `dlssnr_on_amd_weights.bin`，安装器会在复制运行时文件前逐项检查大小和 SHA-256。
 - 原有 Bridge、OptiScaler、AntiPlayerMosaic、TextureLoader 等组件保持原包结构，不替换原神客户端文件。
 - 中文界面使用 UTF-8；如果 ReShade/ImGui 当前字体没有 CJK 字形，中文可能显示为空框。此插件包没有捆绑字体文件。
