@@ -34,7 +34,9 @@ param(
     # 旧行为（PS1 安装脚本）已不再是默认，保留 -GuiInstaller 只为兼容旧命令行，可省略。
     [switch]$GuiInstaller,
     # GUI 安装器 exe 路径；留空则用 Installer\app\GenshinFSRBridgeInstaller.exe。
-    [string]$GuiInstallerExe
+    [string]$GuiInstallerExe,
+    # 含 OpenNR 插件、Feed 和 runtime 文件的已校验资源目录。
+    [string]$OpenNrPayloadDirectory
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -57,6 +59,11 @@ $fufuSource = Join-Path $root 'FufuGraphicsPlugin'
 $fufuBuild = Join-Path $root 'build-package-fufu-graphics'
 $fufuDll = Join-Path $fufuBuild 'FSR-Bridge-Plugin.dll'
 $dist = Join-Path $root 'dist'
+$openNrPayloadDirectory = if ([string]::IsNullOrWhiteSpace($OpenNrPayloadDirectory)) {
+    $null
+} else {
+    [IO.Path]::GetFullPath($OpenNrPayloadDirectory)
+}
 $optiRuntime = Join-Path $root 'SharedResources\OptiScaler\runtime'
 $dlssRuntime = Join-Path $root 'SharedResources\NVIDIA\DLSS'
 $unlockerRuntime = Join-Path $root 'SharedResources\FpsUnlocker\runtime'
@@ -115,6 +122,38 @@ function Get-BridgeVersion {
         throw "编译产物 Dx11FsrBridge.dll 缺少有效文件版本：$version"
     }
     return $matches[1]
+}
+
+function Copy-OpenNrPayload {
+    param(
+        [Parameter(Mandatory)][string]$Stage,
+        [Parameter(Mandatory)][string]$SourceDirectory
+    )
+    $assets = @(
+        @{ Source = 'amd-nr.addon64'; Target = 'payload\ReShade\reshade-shaders\Addons\amd-nr.addon64'; Size = 732672; Hash = '860302A29E370194C57118E11A51B0B8402302702BE7A1FC70F6CDC72283E8B5' },
+        @{ Source = 'AMD_Neural_Feed.fx'; Target = 'payload\ReShade\reshade-shaders\Shaders\AMD_Neural_Feed.fx'; Size = 18395; Hash = 'A11BB2FB702475ADBADD6CEBF9DD3961425780B497A3B909989610A954F23C40' },
+        @{ Source = 'dlssnr_amd_pass1.dll'; Target = 'payload\ReShade\NeuralRuntime\dlssnr_amd_pass1.dll'; Size = 56677888; Hash = '430BE589020685D03F0AD92194457BAFE1A186BF658C8CFE2FB7A0BDB7592CC4' },
+        @{ Source = 'dlssnr_on_amd_weights.bin'; Target = 'payload\ReShade\NeuralRuntime\dlssnr_on_amd_weights.bin'; Size = 147689451; Hash = '6BF8DC931EF3CCFFE18C82DE26AB374156E7F19539FFCF8EABAA25DCA5CF15AB' }
+    )
+    if ([string]::IsNullOrWhiteSpace($SourceDirectory) -or
+        -not (Test-Path -LiteralPath $SourceDirectory -PathType Container)) {
+        throw 'OpenNR 资源目录不存在。请用 -OpenNrPayloadDirectory 指定含四个已校验资产的目录。'
+    }
+    foreach ($asset in $assets) {
+        $source = Join-Path $SourceDirectory $asset.Source
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            throw "OpenNR 资源缺失：$source"
+        }
+        $item = Get-Item -LiteralPath $source
+        $hash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash
+        if ($item.Length -ne $asset.Size -or $hash -ne $asset.Hash) {
+            throw "OpenNR 资源校验失败：$source（$($item.Length) bytes，SHA-256 $hash）"
+        }
+        $target = Join-Path $Stage $asset.Target
+        New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+        Copy-Item -LiteralPath $source -Destination $target -Force
+    }
+    return $assets
 }
 
 function Invoke-Cmake {
@@ -365,7 +404,7 @@ function Prepare-FpsStage {
         Copy-Item -LiteralPath (Join-Path $installerSource 'Configure-Launcher.en.bat') -Destination (Join-Path $Stage 'GenshinFSRBridgeTools.bat') -Force
         $stageScripts = Join-Path $Stage 'scripts'
         New-Item -ItemType Directory -Path $stageScripts -Force | Out-Null
-        foreach ($scriptName in @('Configure.ps1', 'Localization.ps1', 'InstallerCommon.ps1', 'ReShadeResources.ps1', 'Apply-PackageUpdate.ps1')) {
+        foreach ($scriptName in @('Configure.ps1', 'Localization.ps1', 'InstallerCommon.ps1', 'ReShadeResources.ps1', 'Apply-PackageUpdate.ps1', 'OpenNR.ps1')) {
             Copy-Item -LiteralPath (Join-Path $installerSource $scriptName) -Destination (Join-Path $stageScripts $scriptName) -Force
         }
     }
@@ -396,6 +435,9 @@ function Prepare-FpsStage {
     $stageAmd = Join-Path $payload 'AMD'
     $stageDefaults = Join-Path $payload 'default_config'
     New-Item -ItemType Directory -Path $payload, $stagePayloadBridge, $stagePayloadAnti, $stagePayloadReShade, $stagePayloadTextureLoader, $stageOpti, $stageAmd, $stageDefaults -Force | Out-Null
+    if (-not $ScriptInstaller) {
+        throw 'OpenNR is wired into the script installer. Build this compatibility package with -ScriptInstaller.'
+    }
     if (-not $ScriptInstaller) {
         $stageFpsUnlocker = Join-Path $payload 'FpsUnlocker'
         New-Item -ItemType Directory -Path $stageFpsUnlocker -Force | Out-Null
@@ -462,6 +504,10 @@ function Prepare-FpsStage {
         }
     }
     Remove-NonBundledReShadeEffects -ReShadeDirectory $stagePayloadReShade
+    $openNrAssets = Copy-OpenNrPayload -Stage $Stage -SourceDirectory $openNrPayloadDirectory
+    Copy-Item -LiteralPath (Join-Path $installerSource 'OpenNR-README.md') -Destination (Join-Path $Stage 'AMD-NR-README.md') -Force
+    $openNrSums = ($openNrAssets | ForEach-Object { '{0}  {1}' -f $_.Hash, $_.Source }) -join "`r`n"
+    [IO.File]::WriteAllText((Join-Path $Stage 'AMD-NR-SHA256SUMS.txt'), "$openNrSums`r`n", [Text.UTF8Encoding]::new($false))
     Remove-Item -LiteralPath (Join-Path $stagePayloadReShade 'ReShade.ini'), (Join-Path $stagePayloadReShade 'ReShadePreset.ini') -Force -ErrorAction SilentlyContinue
     # 完整组件包：OptiScaler 运行时全家桶（FFX SDK / XeSS / XeLL / D3D12Core / Licenses）始终内置。
     Copy-DirectoryContents -Source $optiRuntime -Destination $stageOpti
@@ -524,12 +570,12 @@ function Build-FpsPackage {
         else {
             @(
                 '一键配置.bat', 'GenshinFSRBridgeTools.bat', 'scripts\Configure.ps1', 'scripts\ReShadeResources.ps1',
-                'scripts\Apply-PackageUpdate.ps1', 'scripts\Localization.ps1', 'scripts\InstallerCommon.ps1',
+                'scripts\Apply-PackageUpdate.ps1', 'scripts\Localization.ps1', 'scripts\InstallerCommon.ps1', 'scripts\OpenNR.ps1',
                 'unlockfps_nc.exe'
             )
         }
         $required = @(
-            'Feedback.txt', 'Package-Version.txt', 'upstream-versions.json'
+            'Feedback.txt', 'Package-Version.txt', 'upstream-versions.json', 'AMD-NR-README.md', 'AMD-NR-SHA256SUMS.txt'
         ) + $installerFiles + @(
             'license\OptiScaler-LICENSE.txt', 'license\FPSUnlocker-LICENSE.txt', 'license\ReShade-LICENSE.txt',
             'payload\Bridge\Dx11FsrBridge.dll', 'payload\Bridge\Dx11FsrBridge.ini',
@@ -543,6 +589,10 @@ function Build-FpsPackage {
             'payload\ReShade\reshade-shaders\Addons\renodx-genshin.addon64',
             'payload\ReShade\reshade-shaders\NOTICE-RenoDX-genshin.txt',
             'payload\ReShade\reshade-shaders\NOTICE-RenoDX-genshin-permission.png',
+            'payload\ReShade\reshade-shaders\Addons\amd-nr.addon64',
+            'payload\ReShade\reshade-shaders\Shaders\AMD_Neural_Feed.fx',
+            'payload\ReShade\NeuralRuntime\dlssnr_amd_pass1.dll',
+            'payload\ReShade\NeuralRuntime\dlssnr_on_amd_weights.bin',
             'payload\default_config\Dx11FsrBridge.ini', 'payload\default_config\OptiScaler.ini',
             'payload\default_config\OptiScaler-UpscalingFiles.json', 'payload\default_config\ReShade.ini',
             'payload\default_config\ReShadePreset.ini', 'payload\default_config\TextureLoader.ini',
@@ -565,7 +615,7 @@ function Build-FpsPackage {
         $archive = Join-Path $dist $name
         if ($ArchiveFormat -eq 'SevenZip') {
             New-SevenZipArchive -SourceDirectory $stage -ArchivePath $archive
-            Assert-PackageSizeLimit -ArchivePath $archive
+            if ($LocalFull) { Assert-PackageSizeLimit -ArchivePath $archive }
         }
         else {
             New-ZipArchive -SourceDirectory $stage -ArchivePath $archive

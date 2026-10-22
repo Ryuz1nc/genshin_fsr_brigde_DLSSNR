@@ -123,6 +123,7 @@ function Update-OptiScalerDerivedPaths {
 Update-OptiScalerDerivedPaths
 $optiComponentDir = $script:optiComponentDir
 $reshadeDir = Join-Path $payload 'ReShade'
+$openNrScript = Join-Path $scriptDirectory 'OpenNR.ps1'
 $bridgeDll = Join-Path $bridgeDir 'Dx11FsrBridge.dll'
 $optiDll = Join-Path $optiDir 'OptiScaler.dll'
 $optiIni = Join-Path $optiDir 'OptiScaler.ini'
@@ -184,6 +185,7 @@ else {
 . (Join-Path $scriptDirectory 'Localization.ps1')
 . (Join-Path $scriptDirectory 'InstallerCommon.ps1')
 . $reShadeResourcesScript
+. $openNrScript
 $script:Language = Get-InstallerLanguage -RequestedLanguage $Language
 Initialize-InstallerLocalization -Language $script:Language
 $script:OptiScalerUpscalingManifestData = $null
@@ -1559,6 +1561,7 @@ if (-not $DisableHDR) {
     Install-ReShadeResources -Mode $ReShadeSource
     Assert-File -Path $reshadeDll
     Assert-Directory -Path $shaderDir
+    Install-OpenNrPayload -ReShadeDirectory $reshadeDir -GameDirectory (Split-Path -Parent $gameExe)
 }
 
 $gameDir = Split-Path -Parent $gameExe

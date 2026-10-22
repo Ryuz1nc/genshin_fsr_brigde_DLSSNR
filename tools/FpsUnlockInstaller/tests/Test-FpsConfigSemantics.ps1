@@ -24,7 +24,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $installerDir = Split-Path -Parent $PSScriptRoot
-$requiredScripts = @('Configure.ps1', 'Localization.ps1', 'InstallerCommon.ps1', 'ReShadeResources.ps1')
+$requiredScripts = @('Configure.ps1', 'Localization.ps1', 'InstallerCommon.ps1', 'ReShadeResources.ps1', 'OpenNR.ps1')
 foreach ($name in $requiredScripts) {
     if (-not (Test-Path -LiteralPath (Join-Path $installerDir $name) -PathType Leaf)) {
         Write-Host ("找不到被测脚本: {0}" -f (Join-Path $installerDir $name)) -ForegroundColor Red
@@ -51,6 +51,12 @@ try {
     foreach ($name in $requiredScripts) {
         Copy-Item -LiteralPath (Join-Path $installerDir $name) -Destination $scriptsDir -Force
     }
+    # This suite isolates fps_config.json semantics; OpenNR payload deployment has its own package test.
+    @'
+function Install-OpenNrPayload {
+    param([string]$ReShadeDirectory, [string]$GameDirectory)
+}
+'@ | Set-Content -LiteralPath (Join-Path $scriptsDir 'OpenNR.ps1') -Encoding UTF8
     Set-Content -LiteralPath (Join-Path $sandbox 'unlockfps_nc.exe') -Value 'dummy' -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $gameDir 'YuanShen.exe') -Value 'dummy' -Encoding ASCII
     # S5/S6 用的 dummy ReShade（-ReShadeSource Existing 只做存在性断言，不下载）

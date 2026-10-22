@@ -351,3 +351,15 @@ Bridge 和反虚化组件默认会保留错误日志（接入 OptiScaler/ReShade
 - 在该版本 ReShade 的 **Home -> Add-ons -> AMD Neural Rendering -> Language** 中选择 `中文`。
 
 Bridge fork 的源码分支已合并上游 v2.4.0。已发布的 DLSSNR 兼容包仍基于 Bridge v2.3.1 / 插件 v0.7.12，尚未随源码更新重新打包或发布。OpenNR 中文界面要求 ReShade/ImGui 字体包含 CJK 字形。
+
+## OpenNR v0.7.14 兼容包（新增）
+
+兼容包基于 Genshin FSR Bridge v2.4.0 和 OpenNR ReShade add-on v0.7.14，包含简体中文界面构建、AMD Neural Rendering runtime v0.6.0 与权重：
+
+- Release：<https://github.com/Ryuz1nc/genshin_fsr_brigde_DLSSNR/releases/tag/v2.4.0-dlssnr-v0.7.14>
+- 附件：`GenshinFSRBridge_v2.4.0_NR_ReShade_v0.7.14.7z`
+- OpenNR 中文版 `amd-nr.addon64`：732672 字节，SHA-256 `860302A29E370194C57118E11A51B0B8402302702BE7A1FC70F6CDC72283E8B5`。
+- 安装器会在安装 ReShade 时校验并部署 OpenNR 插件、Feed、runtime 和权重。
+- OpenNR 默认关闭；启动游戏后，在 ReShade 的 **Add-ons** 页面启用它，并可在 **Language** 中选择 `中文`。
+
+运行 OpenNR 需要 ReShade 6.x 完整 Add-on 版本及 AMD RDNA2、RDNA3 或 RDNA4 显卡。简体中文界面要求 ReShade/ImGui 字体包含 CJK 字形；安装包不包含字体。

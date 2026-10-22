@@ -31,7 +31,7 @@ $ErrorActionPreference = 'Stop'
 
 $installerDir = Split-Path -Parent $PSScriptRoot
 $installerPath = Join-Path $installerDir 'Installer.ps1'
-$requiredScripts = @('Installer.ps1', 'Configure.ps1', 'Localization.ps1', 'InstallerCommon.ps1', 'ReShadeResources.ps1')
+$requiredScripts = @('Installer.ps1', 'Configure.ps1', 'Localization.ps1', 'InstallerCommon.ps1', 'ReShadeResources.ps1', 'OpenNR.ps1')
 foreach ($name in $requiredScripts) {
     if (-not (Test-Path -LiteralPath (Join-Path $installerDir $name) -PathType Leaf)) {
         Write-Host ("找不到被测脚本: {0}" -f (Join-Path $installerDir $name)) -ForegroundColor Red
@@ -118,7 +118,7 @@ try {
     $payloadDirectory = Join-Path $sandbox 'payload'
     $gameDir = Join-Path $sandbox 'game'
     New-Item -ItemType Directory -Force -Path $scriptsDir, (Join-Path $payloadDirectory 'Bridge'), (Join-Path $payloadDirectory 'AMD'), $gameDir | Out-Null
-    foreach ($name in @('Configure.ps1', 'Localization.ps1', 'InstallerCommon.ps1', 'ReShadeResources.ps1')) {
+    foreach ($name in @('Configure.ps1', 'Localization.ps1', 'InstallerCommon.ps1', 'ReShadeResources.ps1', 'OpenNR.ps1')) {
         Copy-Item -LiteralPath (Join-Path $installerDir $name) -Destination $scriptsDir -Force
     }
     Set-Content -LiteralPath (Join-Path $gameDir 'YuanShen.exe') -Value 'dummy' -Encoding ASCII
