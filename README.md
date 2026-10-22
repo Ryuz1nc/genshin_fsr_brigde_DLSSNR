@@ -341,15 +341,13 @@ Bridge 和反虚化组件默认会保留错误日志（接入 OptiScaler/ReShade
   <sub>Genshin FSR Bridge · GPL-3.0-or-later · <a href="https://github.com/AizawaHikaru233/genshin_fsr_brigde/releases">Releases</a> · <a href="https://github.com/AizawaHikaru233/genshin_fsr_brigde/issues">Issues</a></sub>
 </div>
 
-## DLSSNR / ReShade 插件包（本 fork 附件）
+## DLSSNR / ReShade 插件包（本 fork 已发布附件）
 
-本 fork 的 Release 附件中增加了一个基于 Genshin FSR Bridge 2.4.0 的 DLSSNR / ReShade 兼容包：
+当前已发布的兼容包基于 Genshin FSR Bridge v2.3.1 和 AMD Neural Rendering ReShade add-on v0.7.12：
 
-- `GenshinFSRBridge_v2.4.0_NR_ReShade_OpenNR.zip`
-- 内置 OpenNR ReShade add-on v0.7.14 的简体中文重编译版本；在 ReShade 的 **Home -> Add-ons -> OpenNR -> Language** 中选择 `中文`。
-- 同步 v0.7.13/v0.7.14 的 mochizuki 新运行时、HIP 设备匹配回退、SDR 帧处理和 OpenNR 面板改名。
-- 保留 `AMD_Neural_Feed.fx`、`dlssnr_amd_pass1.dll` 和 `dlssnr_on_amd_weights.bin` 等游戏目录文件名；安装器会在复制运行时文件前逐项检查大小和 SHA-256。
-- Bridge 2.4.0 的图形安装器和原有组件按上游结构同步；不替换原神客户端文件。
-- 中文界面使用 UTF-8；如果 ReShade/ImGui 当前字体没有 CJK 字形，中文可能显示为空框。此插件包会随 OpenNR 安装器提供 MiSans 字体资源。
+- Release：<https://github.com/Ryuz1nc/genshin_fsr_brigde_DLSSNR/releases/tag/v2.3.1-dlssnr-v0.7.12>
+- 附件：`GenshinFSRBridge_v2.3.1_NR_ReShade_v0.7.12.zip`
+- `amd-nr.addon64`：723968 字节，SHA-256 `8CA59630A4685ACA44401CE87B6F39B09E0726897AD41A97A6F5B4F3BDA45D48`。
+- 在该版本 ReShade 的 **Home -> Add-ons -> AMD Neural Rendering -> Language** 中选择 `中文`。
 
-该附件使用 OpenNR v0.7.14 的中文重编译 DLL，并同步上游 v0.7.14 的源码与构建测试。发布包中的 runtime 版本和具体 SHA-256 以随包的 `AMD-NR-SHA256SUMS.txt` 为准。
+本 fork 源码现已合并 Bridge v2.4.0 与 OpenNR add-on v0.7.14 上游更新，并保留简体中文面板翻译。对应的新兼容包尚未打包或发布；此处 Release 链接仍指向上面的 v2.3.1 / v0.7.12 附件。OpenNR 中文界面要求 ReShade/ImGui 字体包含 CJK 字形。
