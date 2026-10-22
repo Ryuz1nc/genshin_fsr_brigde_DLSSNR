@@ -23,3 +23,22 @@ The source project and its upstream usage notes are available at
 <https://github.com/zmodelerlover/dlss5-neural-amd>. The AMD runtime and
 weights are from <https://github.com/danielblnc/DLSS-NR-on-AMD>. This package
 does not include or use NVIDIA's `nvngx_dlssnr.dll`.
+
+## Danielblnc NeuralHub v0.8.0
+
+Danielblnc's standalone NeuralHub v0.8.0 supports DLSS Super Resolution, Ray
+Reconstruction, Frame Generation, and Neural Rendering. Download
+`NeuralHub_v0.8.0_setup.exe` directly from the
+[official v0.8.0 release](https://github.com/danielblnc/DLSS-NR-on-AMD/releases/tag/v0.8.0).
+Its license prohibits repackaging or redistribution, so this compatibility
+package does not contain the installer.
+
+NeuralHub requires the user's own copies of `nvngx_dlssnr.dll`,
+`nvngx_dlss.dll`, `nvngx_dlssd.dll`, and `nvngx_dlssg.dll`. The copies checked
+for this package are version `310.9.16.0`; import the files into NeuralHub after
+installing it. These NVIDIA files are not included in the public release.
+
+NeuralHub's v0.8.0 documentation targets DirectX 12 games. This package's
+Genshin FSR Bridge path uses DirectX 11, so NeuralHub is a separate optional
+tool and is not verified as a replacement for the ReShade OpenNR integration
+described above.

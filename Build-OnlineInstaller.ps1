@@ -19,7 +19,7 @@
 #
 # 用法：
 #   powershell -ExecutionPolicy Bypass -File .\Build-OnlineInstaller.ps1 [-Configuration Release]
-#   [-GithubOnly] [-FetchUpstream] [-SevenZipPath <7z.exe>]
+#   [-GithubOnly] [-FetchUpstream] [-SevenZipPath <7z.exe>] [-OutputDirectory <path>]
 [CmdletBinding()]
 param(
     [ValidateSet('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel')]
@@ -36,7 +36,9 @@ param(
     # GUI 安装器 exe 路径；留空则用 Installer\app\GenshinFSRBridgeInstaller.exe。
     [string]$GuiInstallerExe,
     # 含 OpenNR 插件、Feed 和 runtime 文件的已校验资源目录。
-    [string]$OpenNrPayloadDirectory
+    [string]$OpenNrPayloadDirectory,
+    # 构建输出目录。默认仍使用仓库内 dist；相对路径按仓库根目录解析。
+    [string]$OutputDirectory
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -58,7 +60,15 @@ $packageAssets = Join-Path $root 'assets\FpsUnlockPackage'
 $fufuSource = Join-Path $root 'FufuGraphicsPlugin'
 $fufuBuild = Join-Path $root 'build-package-fufu-graphics'
 $fufuDll = Join-Path $fufuBuild 'FSR-Bridge-Plugin.dll'
-$dist = Join-Path $root 'dist'
+$dist = if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+    Join-Path $root 'dist'
+}
+elseif ([IO.Path]::IsPathRooted($OutputDirectory)) {
+    [IO.Path]::GetFullPath($OutputDirectory)
+}
+else {
+    [IO.Path]::GetFullPath((Join-Path $root $OutputDirectory))
+}
 $openNrPayloadDirectory = if ([string]::IsNullOrWhiteSpace($OpenNrPayloadDirectory)) {
     $null
 } else {

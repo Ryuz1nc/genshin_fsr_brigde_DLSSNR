@@ -363,3 +363,16 @@ Bridge fork 的源码分支已合并上游 v2.4.0。已发布的 DLSSNR 兼容�
 - OpenNR 默认关闭；启动游戏后，在 ReShade 的 **Add-ons** 页面启用它，并可在 **Language** 中选择 `中文`。
 
 运行 OpenNR 需要 ReShade 6.x 完整 Add-on 版本及 AMD RDNA2、RDNA3 或 RDNA4 显卡。简体中文界面要求 ReShade/ImGui 字体包含 CJK 字形；安装包不包含字体。
+
+## Bridge v2.4.0 / OpenNR v0.7.14 / NeuralHub v0.8.0
+
+本次兼容包以主仓库最新 release Genshin FSR Bridge v2.4.0 为基础，保留包内 OpenNR ReShade add-on v0.7.14 与 AMD runtime v0.6.0，并附带 Danielblnc NeuralHub v0.8.0 的独立使用说明。
+
+- NeuralHub 官方 release：<https://github.com/danielblnc/DLSS-NR-on-AMD/releases/tag/v0.8.0>
+- NeuralHub 安装器和 NVIDIA DLSS DLL 均不随本包分发。上游许可证禁止重新打包；请从官方 release 下载 `NeuralHub_v0.8.0_setup.exe`，并在 NeuralHub 中导入自己合法取得的 `nvngx_dlssnr.dll`、`nvngx_dlss.dll`、`nvngx_dlssd.dll` 和 `nvngx_dlssg.dll`。
+- 本次核验的四个 DLSS 文件版本为 `310.9.16.0`，Authenticode 签名有效。
+- NeuralHub v0.8.0 上游说明面向 DirectX 12 游戏；本兼容包中的原神路径使用 DirectX 11，NeuralHub 不属于包内 ReShade OpenNR 集成，也未宣称已与此路径兼容。
+
+Release：<https://github.com/Ryuz1nc/genshin_fsr_brigde_DLSSNR/releases/tag/v2.4.0-dlssnr-v0.7.14-neuralhub-v0.8.0>
+
+- 附件：`GenshinFSRBridge_v2.4.0_DLSSNR-v0.7.14_NeuralHub-v0.8.0.7z`
