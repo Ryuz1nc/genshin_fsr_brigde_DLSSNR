@@ -350,4 +350,4 @@ Bridge 和反虚化组件默认会保留错误日志（接入 OptiScaler/ReShade
 - `amd-nr.addon64`：723968 字节，SHA-256 `8CA59630A4685ACA44401CE87B6F39B09E0726897AD41A97A6F5B4F3BDA45D48`。
 - 在该版本 ReShade 的 **Home -> Add-ons -> AMD Neural Rendering -> Language** 中选择 `中文`。
 
-本 fork 源码现已合并 Bridge v2.4.0 与 OpenNR add-on v0.7.14 上游更新，并保留简体中文面板翻译。对应的新兼容包尚未打包或发布；此处 Release 链接仍指向上面的 v2.3.1 / v0.7.12 附件。OpenNR 中文界面要求 ReShade/ImGui 字体包含 CJK 字形。
+Bridge fork 的源码分支已合并上游 v2.4.0。已发布的 DLSSNR 兼容包仍基于 Bridge v2.3.1 / 插件 v0.7.12，尚未随源码更新重新打包或发布。OpenNR 中文界面要求 ReShade/ImGui 字体包含 CJK 字形。
