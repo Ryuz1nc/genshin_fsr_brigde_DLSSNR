@@ -1,37 +1,89 @@
 # Genshin FSR Bridge
 
+<p align="center">
+  <a href="https://github.com/AizawaHikaru233/genshin_fsr_brigde/releases"><img alt="Release" src="https://img.shields.io/github/v/release/AizawaHikaru233/genshin_fsr_brigde?sort=semver&amp;label=release&amp;color=0078D6"></a>
+  <a href="Dx11FsrBridge/LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
+  <img alt="Platform: Windows DX11" src="https://img.shields.io/badge/platform-Windows%20DX11-6f42c1?logo=windows&amp;logoColor=white">
+  <img alt="FSR4 / FSR3 / FSR2" src="https://img.shields.io/badge/FSR-4%20%7C%203%20%7C%202-f97316">
+  <img alt="AMD FFX12 SDK" src="https://img.shields.io/badge/AMD-FFX12%20SDK-ED1C24?logo=amd&amp;logoColor=white">
+  <img alt="Genshin 7.1+" src="https://img.shields.io/badge/Genshin-7.1%2B-0ea5e9">
+</p>
+
+<p align="center">
+  <b>简体中文</b> · <a href="README_EN.md">English</a>
+</p>
+
+<div align="center">
+  <img src="assets/readme/hero.svg" alt="原神原生 FSR2 调用经 Dx11FsrBridge 转接到 AMD FFX12 SDK，输出 FSR4 / FSR3 / FSR2" width="100%">
+</div>
+
 面向原神 Windows DX11 客户端的图形插件。它独立 hook 游戏原生 FSR2 调用，并转接到 AMD FFX12 官方 SDK 实现超分：在支持的显卡上直接提供 FSR4/FSR3/FSR2，不依赖 OptiScaler 等外部插件；接入 OptiScaler 后可以进一步扩展 DLSS/XeSS/FSR4 INT8 等超分类型。
 
 本仓库同时包含 `AntiPlayerMosaic/` 与 `TextureLoader/` 两个子项目：前者是独立构建的原神马赛克修复与 UID 隐藏插件；后者是 3DMigoto 兼容的纹理替换 / Mod 加载器（支持 DDS 与 DirectStorage GPU 解压的 GDDS）。用法分别见对应目录的 README 与 NOTICE。
 
 英文说明见 [README_EN.md](README_EN.md)。
 
+## 目录
+
+| 概览 | 使用 | 开发与支持 |
+| :--- | :--- | :--- |
+| [支持范围与风险声明](#支持范围与风险声明)<br>[效果演示](#效果演示)<br>[功能](#功能)<br>[GPU 支持与 N 卡注意事项](#gpu-支持与-n-卡注意事项) | [发布包](#发布包)<br>[芙芙启动器插件包源码与本地构建](#芙芙启动器插件包源码与本地构建)<br>[使用方法](#使用方法)<br>[日志与问题反馈](#日志与问题反馈) | [仓库结构](#仓库结构)<br>[构建](#构建)<br>[第三方组件](#第三方组件)<br>[许可证](#许可证) |
+
 ## 支持范围与风险声明
 
 - 目标支持原神中国服与全球服的 Windows DX11 客户端。
-- 已适配原神 `7.0` 并实测通过。**新版本游戏更新后需要重新验证**：本项目 hook 的是
-  游戏内部的 FSR2 调用与 il2cpp 方法（含 RVA 与序言字节匹配），游戏更新可能改变这些
-  内部结构。桥会在特征不匹配时放弃 hook 并回退（不会崩溃），但**超分可能随之失效**，
-  需等本项目跟进适配。详见 [GPU 支持与 N 卡注意事项](#gpu-支持与-n-卡注意事项)。
+- 已适配原神 `7.0`、`7.1` 并实测通过。桥通过**动态特征识别**定位游戏内部的 FSR2 调用与
+  il2cpp 方法，不依赖写死的 RVA / 序言字节，因此**并不局限于已实测的版本**：后续游戏更新
+  只要没有大改（FSR2 调用路径与相关内部结构保持稳定）即可直接支持，无需等待本项目更新。
+- 若某次更新确实改动了这些内部结构，桥会在特征不匹配时放弃 hook 并回退（不会崩溃），
+  此时**超分可能失效**，需等本项目跟进适配。详见 [GPU 支持与 N 卡注意事项](#gpu-支持与-n-卡注意事项)。
 - 功能与硬件前提：FSR4/FSR3/FSR2 的实际可用档位取决于**显卡型号与驱动版本**
   （例如 FSR4 需要 RDNA4 及对应驱动）。文中"在支持的显卡上"均指该节所列范围，
   请先对照确认自己的显卡在列。
 - 本项目与 `HoYoverse`、`miHoYo`、`《原神》`及 `Genshin Impact` 均无关联，也未获得其认可或授权；相关名称与商标归其各自权利人所有。
-- 使用第三方 DLL、注入器、Mod 或图形插件可能违反游戏规则，并可能导致账号限制或封禁。使用者须自行评估风险并承担全部责任。
+
+> [!WARNING]
+> 使用第三方 DLL、注入器、Mod 或图形插件可能违反游戏规则，并可能导致账号限制或封禁。使用者须自行评估风险并承担全部责任。
 
 ## 效果演示
 
-![FSR4 激活](assets/FSR4激活.jpg)
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/FSR4激活.jpg"><img src="assets/FSR4激活.jpg" alt="FSR4 激活" width="100%"></a>
+      <br>
+      <sub><b>FSR4 激活</b> · 叠加层显示 <code>FSR 4.1.0</code>（AMD Radeon RX 9070 XT）</sub>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/超分档位切换.jpg"><img src="assets/超分档位切换.jpg" alt="超分档位切换" width="100%"></a>
+      <br>
+      <sub><b>渲染精度扩展</b> · 画质菜单可选 <code>0.2–0.999</code></sub>
+    </td>
+  </tr>
+</table>
 
-![超分档位切换](assets/超分档位切换.jpg)
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/readme/installer-home.jpg"><img src="assets/readme/installer-home.jpg" alt="安装器 · 主页" width="100%"></a>
+      <br>
+      <sub><b>安装器 · 主页</b> · 游戏目录、帧率上限、安装内容，一屏改完</sub>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/readme/installer-plugins.jpg"><img src="assets/readme/installer-plugins.jpg" alt="安装器 · 插件配置" width="100%"></a>
+      <br>
+      <sub><b>安装器 · 插件配置</b> · 组件版本切换、Mods 目录、解帧工具选项</sub>
+    </td>
+  </tr>
+</table>
 
-## 帧生成分支
-
-`frame-generation` 分支中的帧生成功能基于 `OptiScaler 0.10.0-pre1` 构建。低于 `0.10.0-pre1` 的 OptiScaler 不支持该帧生成功能。
+<sub>上两图为实机游戏截图（3840×2160），下两图为安装器界面（2564×1604）；点击均可查看原图。</sub>
 
 ## 发布包
 
-包由构建脚本直接组装：安装器脚本位于 `tools/FpsUnlockInstaller/`，反馈与组件清单位于 `assets/FpsUnlockPackage/`，运行资源和默认配置位于 `SharedResources/`。GitHub 发布包不会内置 NVIDIA DLSS 组件与 ReShade 二进制，安装时由脚本从各自官方上游获取（DLSS 来自 NVIDIA Streamline、ReShade 来自 reshade.me）；本地分发包需要自行补齐相应组件。
+包由构建脚本直接组装，安装器默认就是 `Installer/` 里的图形安装器（详见 `Installer/README.md`）；旧的 PowerShell 安装脚本（`tools/FpsUnlockInstaller/`）已不参与发布包，源码暂时保留，需要时可加 `-ScriptInstaller` 打一个旧流程的包。反馈与组件清单位于 `assets/FpsUnlockPackage/`，运行资源和默认配置位于 `SharedResources/`。包根 `README.md` 就是本文件，`assets/readme/` 里的演示图会一起带上。
+
+GitHub 发布包不会内置 ReShade 二进制与 NVIDIA DLSS 运行时：勾了 ReShade 才从 reshade.me 取；勾了 OptiScaler 且检测到 RTX 显卡时，从 NVIDIA 官方 Streamline 取 `nvngx_dlss.dll` 放进 OptiScaler 的组件目录（GTX 16 只吃 FSR4 INT8，不部署 DLSS）。本地分发包里哪些组件需要自行补齐，按包内实际内容处理。
 
 要生成 GitHub 发布包，请在 Windows 上运行：
 
@@ -39,7 +91,8 @@
 powershell -ExecutionPolicy Bypass -File .\Build-OnlineInstaller.ps1 -Configuration Release -GithubOnly
 ```
 
-构建结果位于 `dist\原神解帧FSR插件包_v*.7z`，GitHub 发布目录生成 `dist\github-release\GenshinFSRBridge_v*.zip`。GitHub Actions 只构建和发布这个 GitHub 发布包，不生成芙芙包。
+构建结果位于 `dist\原神解帧FSR插件包_v*.7z`，GitHub 发布目录生成 `dist\github-release\GenshinFSRBridge_v*.7z`。GitHub Actions 只构建和发布这个 GitHub 发布包，不生成芙芙包。
+
 ## 芙芙启动器插件包源码与本地构建
 
 `FufuGraphicsPlugin/` 提供芙芙启动器插件的源码、配置模板以及商城/本地测试 Lua 安装脚本；仓库不提交芙芙启动器插件二进制包。本地构建前先运行 `tools/Update-UpstreamComponents.ps1` 获取上游组件基线（OptiScaler 固定 v0.9.4，DLSS、ReShade、FPS Unlocker 获取各自最新正式版并做 SHA-256 校验），再运行：
@@ -53,12 +106,23 @@ powershell -ExecutionPolicy Bypass -File .\Build-OnlineInstaller.ps1 -Configurat
 
 ## 功能
 
-- 通过 DX11 设备与上下文拦截获取原神的 FSR2 调用时机。
-- 为 FFX12 SDK 准备颜色、深度、运动向量、抖动和历史资源，并转接超分 dispatch。
-- 按显卡能力自动匹配 FSR 系列（FSR4/FSR3/FSR2），支持显卡上无需外部插件即可超分。
-- 将游戏渲染精度菜单扩展为 `0.2–0.999`。
-- 运行时日志默认写入 DLL 同目录的 `Dx11FsrBridge.log`，用于排查加载与 Hook 状态。
-- **TextureLoader**（纹理/Mod 加载器）：3DMigoto 兼容的 `[TextureOverride]` Mod 加载（DDS 替换 + GDDS DirectStorage GPU 解压），默认从插件包内 `Mods` 目录加载。**当前只支持纯纹理贴图类 Mod，不支持模型类 Mod**，见下方「TextureLoader 支持范围」。**该组件在 N 卡上不推荐**（极大概率出现替换贴图 Mod 加载丢失，但不是完全不可用，仍可手动开启），见下方「GPU 支持与 N 卡注意事项」。
+Bridge 的核心路径是拦截游戏原生 FSR2 调用并转接到 FFX12 SDK：
+
+```mermaid
+flowchart LR
+    G["原神 DX11 客户端<br/>原生 FSR2 调用"] --> B["Dx11FsrBridge.dll<br/>DX11 Hook · FFX12 资源转接"]
+    B --> S["AMD FFX12 SDK<br/>FSR4 / FSR3 / FSR2"]
+    S --> P["游戏画面<br/>超分输出"]
+```
+
+| 模块 | 能力 | 说明 |
+| :---: | --- | --- |
+| 🎯 | **原生 FSR 转接** | 通过 DX11 设备与上下文拦截获取原神的 FSR2 调用时机。 |
+| 🧩 | **FFX12 资源转接** | 为 FFX12 SDK 准备颜色、深度、运动向量、抖动和历史资源，并转接超分 dispatch。 |
+| ⚡ | **自动档位匹配** | 按显卡能力自动匹配 FSR 系列（FSR4/FSR3/FSR2），支持显卡上无需外部插件即可超分。 |
+| 🎚 | **渲染精度扩展** | 将游戏渲染精度菜单扩展为 `0.2–0.999`。 |
+| 📝 | **运行日志** | 运行时日志默认写入 DLL 同目录的 `Dx11FsrBridge.log`，用于排查加载与 Hook 状态。 |
+| 🖼 | **TextureLoader**（纹理/Mod 加载器） | 3DMigoto 兼容的 `[TextureOverride]` Mod 加载（DDS 替换 + GDDS DirectStorage GPU 解压），默认从插件包内 `Mods` 目录加载。**当前只支持纯纹理贴图类 Mod，不支持模型类 Mod**，见下方「[TextureLoader 支持范围](#textureloader-支持范围)」。**该组件在 N 卡上不推荐**（极大概率出现替换贴图 Mod 加载丢失，但不是完全不可用，仍可手动开启），见下方「[GPU 支持与 N 卡注意事项](#gpu-支持与-n-卡注意事项)」。 |
 
 ## GPU 支持与 N 卡注意事项
 
@@ -70,9 +134,14 @@ powershell -ExecutionPolicy Bypass -File .\Build-OnlineInstaller.ps1 -Configurat
 | **OptiScaler + ReShade 同时启用** | ✅ | ⚠️ **可能不稳定** | ✅ |
 | **TextureLoader（纹理/Mod 加载器）** | ✅ 支持 | ⚠️ **不推荐（可能加载丢失，可手动开启）** | ⚠️ 未验证 |
 
-### ⚠️ N 卡上 OptiScaler 与 ReShade 同时启用可能不稳定
+<sub>✅ 支持 · ⚠️ 有前提或不推荐</sub>
 
-**单独使用 OptiScaler、或单独使用 ReShade，都没有问题；两者同时启用时，在 NVIDIA 环境下可能出现异常或不稳定。** 这取决于二者的加载顺序与 N 卡驱动之间的交互，与本项目代码无关——本项目只负责按默认顺序把它们加载起来。
+### N 卡上 OptiScaler 与 ReShade 同时启用可能不稳定
+
+> [!WARNING]
+> **单独使用 OptiScaler、或单独使用 ReShade，都没有问题；两者同时启用时，在 NVIDIA 环境下可能出现异常或不稳定。**
+
+这取决于二者的加载顺序与 N 卡驱动之间的交互，与本项目代码无关——本项目只负责按默认顺序把它们加载起来。
 
 若遇到异常：
 
@@ -86,7 +155,12 @@ powershell -ExecutionPolicy Bypass -File .\Build-OnlineInstaller.ps1 -Configurat
 
 **N 卡极大概率会出现替换的贴图纹理 mod 加载丢失的问题，而不是完全不可用；但不推荐用，运气好的时候可以正常使用，没有找到特定条件。**
 
+<details>
+<summary><b>为什么 N 卡上替换贴图 Mod 可能加载丢失？（排查记录）</b></summary>
+
 项目作者没有 N 卡，只能依靠 QQ 群群友协助反复测试，始终无法定位根因——已排除 mod 贴图文件本身（3139 个 DDS 全量校验均为合法 BC3）、格式与 SRV 视图处理（N 卡日志字段与 A 卡逐项一致且 `hr=0`）、哈希匹配与 ini 覆盖、线程路径（两机同构）、跨机文件差异（FNV 指纹逐位一致）、alpha 通道内容，以及初始数据缓冲被后继加载复用（该缺陷已修复，但 N 卡画面仍异常）。唯一无法在本地复现的环节是 **N 卡驱动的纹理创建 / 上载时机**。
+
+</details>
 
 因此发布包一律按下列方式处理：
 
@@ -95,6 +169,7 @@ powershell -ExecutionPolicy Bypass -File .\Build-OnlineInstaller.ps1 -Configurat
 - **想彻底修复的 N 卡用户**：欢迎自行拉取本仓库源码修复，然后提交合并请求（Pull Request）。
 - **也可以赞助作者一张 NVIDIA 显卡**，作者会尝试定位并修复该问题。
 
+> [!NOTE]
 > A 卡用户不受影响：交互式安装仍会询问是否启用（默认否），之后可在插件配置界面随时开关。「一键安装全部模块」会自动包含它（N 卡除外——N 卡上需手动选择模块 5）。
 
 ### TextureLoader 支持范围
@@ -113,48 +188,54 @@ powershell -ExecutionPolicy Bypass -File .\Build-OnlineInstaller.ps1 -Configurat
 但**执行能力远小于 3DMigoto** —— 后者是完整的绘制拦截与命令重放框架，
 本组件只实现了"纹理创建时替换像素"这一条路径。
 
+> [!NOTE]
 > 若 Mod 同时包含贴图与模型，**贴图部分会生效、模型部分不会** ——
 > 表现为"贴图变了但外形没变"，这不是缺陷，是当前功能边界。
 > 完整说明见 [`TextureLoader/README.md`](TextureLoader/README.md#支持范围)。
 
 ## 仓库结构
 
-- 仓库根目录：FSR Bridge 源码、配置与构建文件。
-- `AntiPlayerMosaic/`：反虚化、隐藏 UID 与水下马赛克修复插件。
-- `FufuGraphicsPlugin/`：芙芙启动器的bootstrap、配置文件和安装脚本。
-- `TextureLoader/`：3DMigoto 兼容纹理替换 / Mod 加载器（DDS + GDDS，**仅纯纹理贴图类 Mod**）。
-- `SharedResources/`：随包分发的运行时资源与组件归档。原神专用 RenoDX HDR 滤镜
-  Add-on 及其再分发授权记录归档于
-  `SharedResources/ReShade/runtime/reshade-shaders/`。
+| 目录 | 说明 |
+| --- | --- |
+| 仓库根目录 | FSR Bridge 源码、配置与构建文件。 |
+| `AntiPlayerMosaic/` | 反虚化、隐藏 UID 与水下马赛克修复插件。 |
+| `FufuGraphicsPlugin/` | 芙芙启动器的bootstrap、配置文件和安装脚本。 |
+| `TextureLoader/` | 3DMigoto 兼容纹理替换 / Mod 加载器（DDS + GDDS，**仅纯纹理贴图类 Mod**）。 |
+| `Installer/` | 图形安装器（Tauri 2 + Rust + WebView2）：管理注入链、组件版本、组件日志与插件包自更新。 |
+| `SharedResources/` | 随包分发的运行时资源与组件归档。原神专用 RenoDX HDR 滤镜 Add-on 及其再分发授权记录归档于 `SharedResources/ReShade/runtime/reshade-shaders/`。 |
 
 ## 使用方法
 
-> ⚠️ 本插件包**仅面向 Windows**，未做 Linux 兼容：安装脚本依赖 Windows 批处理与 PowerShell，
+> [!WARNING]
+> 本插件包**仅面向 Windows 10 1809+ / Windows 11**，未做 Linux 兼容：图形安装器依赖 WebView2 运行时，
 > 在 Wine / Proton 下无法运行（双击后立即退出）。Linux 用户请走下方的
 > **Linux 安装 / Windows 手动安装**流程。
 
-### Windows 脚本一键安装
+### Windows 图形安装器
 
 1. 从 [Releases](https://github.com/AizawaHikaru233/genshin_fsr_brigde/releases) 下载**最新版本**的插件包，
-   解压到**不含中文或非法字符**的目录。
-2. 运行安装脚本（按界面语言选择，两者功能相同）：
+   解压到**不含中文或非法字符**的目录（`GenshinFSRBridgeInstaller.exe` 必须和 `payload\` 同级）。
+2. 双击 `GenshinFSRBridgeInstaller.exe`。不需要管理员权限，也不会往系统目录写东西。
+3. 点「更换…」选择原神安装目录，安装器会自己扫注册表和常见路径。
+4. 勾选**要启用的组件**，点「保存」——这一步把选中组件的绝对路径写进
+   `payload\FpsUnlocker\fps_config.json` 的注入链（`DllList`），游戏目录里不会多出 DLL。
 
-   | 界面语言 | 文件名 |
-   |---|---|
-   | 中文 | `一键配置.bat` |
-   | English | `GenshinFSRBridgeTools.bat` |
+   - **只需替换超分模型** → 至少勾 **Dx11FsrBridge**（必装，默认已勾）
+   - **需要 DLSS 或 XeSS** → 再勾 **OptiScaler**
+   - **需要 HDR 增强** → 勾 **ReShade + RenoDX**（N 卡同时开 OptiScaler 会提示兼容性风险）
 
-   也可在安装器主菜单中随时切换中文 / English，选择会自动保存。
-3. 按提示填写**需要解锁的帧率**与**要安装的插件**：
+5. 点「启动游戏」。安装器会在 `payload\FpsUnlocker\` 原地拉起解帧工具，由它注入并启动游戏。
+   之后直接双击桌面快捷方式（安装时可选）或从启动器启动即可。
 
-   - **只需替换超分模型** → 至少安装 **Bridge**
-   - **需要 DLSS 或 XeSS** → 还需安装 **OptiScaler**
-
+> [!IMPORTANT]
 > **游戏内设置（必须）**：启用 `FSR2` 抗锯齿，且渲染精度需**低于 `1`**。
 
-GitHub 发布包内置 FPS Unlocker 与 OptiScaler；安装脚本会在运行时从官方上游获取
-[NVIDIA DLSS 超分组件（`nvngx_dlss.dll`）](https://github.com/NVIDIA-RTX/Streamline/releases) 与 ReShade。
+GitHub 发布包内置 FPS Unlocker 与 OptiScaler；缺组件时安装器会在「插件配置」里给出「下载」按钮，
+当场从官方上游补齐（ReShade 来自 reshade.me，其余来自本仓库 Releases），不需要重下整包。
 本地分发包需要自行补齐相应组件。
+
+旧的 PowerShell 安装脚本（`一键配置.bat` / `GenshinFSRBridgeTools.bat`）不再随包分发；
+需要旧流程时可用 `Build-OnlineInstaller.ps1 -ScriptInstaller` 自行打包。
 
 ### Linux 安装 / Windows 手动安装
 
@@ -178,11 +259,12 @@ GitHub 发布包内置 FPS Unlocker 与 OptiScaler；安装脚本会在运行时
   |---|---|---|
   | 0.9.x | 平铺：组件与 `OptiScaler.dll` 同层 | `OptiScaler.dll` 所在目录 |
   | 0.10 每夜版 | 嵌套：组件在 `OptiScaler\` 子目录 | 该 `OptiScaler\` 子目录 |
-
-  > 注意 `OptiScaler.dll` 与 `OptiScaler.ini` **两种布局下都在根层**（OptiScaler 从自身所在目录读 ini），
-  > 所以**不要**直接把 ini 所在目录当作 `OptiDllPath`。填错会导致 OptiScaler 注入成功
-  > 却找不到任何超分后端（"接管了却无法启用"），退出时还可能 DETACH 卡死、进程残留。
 - 按 OptiScaler 官方推荐方式，把**整套文件**复制到游戏主程序所在目录，再指定注入 DLL。
+
+> [!IMPORTANT]
+> 注意 `OptiScaler.dll` 与 `OptiScaler.ini` **两种布局下都在根层**（OptiScaler 从自身所在目录读 ini），
+> 所以**不要**直接把 ini 所在目录当作 `OptiDllPath`。填错会导致 OptiScaler 注入成功
+> 却找不到任何超分后端（"接管了却无法启用"），退出时还可能 DETACH 卡死、进程残留。
 
 游戏主程序按发行版区分：
 
@@ -206,6 +288,8 @@ ReShade 的着色器 / 纹理 / Preset / 截图路径均使用**相对路径**�
 
 需要 Visual Studio（含 C++ 桌面开发组件）、Windows SDK 和 CMake 3.20 或更新版本（Ninja 生成器）。发布配置需要仓库内的 `Dx11FsrBridge\third_party` 目录，其中包含 FFX12 ffx-api 头文件和 Microsoft Detours 构建依赖。
 
+还要 Rust 工具链（`cargo`）来编图形安装器：先跑一次 `Installer\app\build-app.ps1` 生成 `Installer\app\GenshinFSRBridgeInstaller.exe`，打包脚本会直接取它；没有这个 exe 时会报错提示。
+
 先更新上游组件基线（仅需在组件版本变化时执行；脚本固定 OptiScaler v0.9.4，DLSS、ReShade、FPS Unlocker 获取各自最新正式版）：
 
 ```powershell
@@ -227,16 +311,20 @@ powershell -ExecutionPolicy Bypass -File .\Build-OnlineInstaller.ps1 -Configurat
 Bridge 和反虚化组件默认会保留错误日志（接入 OptiScaler/ReShade 时它们也会保留各自日志）。每次重新运行会覆盖上一轮日志。
 遇到游戏无法启动、FSR 无法激活、切换超分后闪退或其他异常时，请在复现后不要再次启动游戏，并提供：
 
-1. `payload/Bridge/Dx11FsrBridge.log` (必须)
-2. `payload/OptiScaler/OptiScaler.log` 与 `payload/OptiScaler/OptiScaler.ini`（使用 OptiScaler 时）
-3. `payload/ReShade/ReShade.log`（涉及 ReShade 时）
-4. `payload/AntiPlayerMosaic/AntiPlayerMosaic.log`（涉及反虚化、UID 或水下马赛克时）
-5. `payload/TextureLoader/TextureLoader.log`（涉及纹理替换 / Mod 加载时）
-6. 芙芙插件目录下的 `FSR-Bridge-Plugin.log`（使用芙芙启动器插件时）
-7. 显卡型号、游戏版本、异常发生阶段和所选超分模式
+| # | 文件 / 信息 | 适用场景 |
+| :---: | --- | --- |
+| 1 | `payload/Bridge/Dx11FsrBridge.log` | **必须** |
+| 2 | `payload/OptiScaler/OptiScaler.log` 与 `payload/OptiScaler/OptiScaler.ini` | 使用 OptiScaler 时 |
+| 3 | `payload/ReShade/ReShade.log` | 涉及 ReShade 时 |
+| 4 | `payload/AntiPlayerMosaic/AntiPlayerMosaic.log` | 涉及反虚化、UID 或水下马赛克时 |
+| 5 | `payload/TextureLoader/TextureLoader.log` | 涉及纹理替换 / Mod 加载时 |
+| 6 | 芙芙插件目录下的 `FSR-Bridge-Plugin.log` | 使用芙芙启动器插件时 |
+| 7 | 显卡型号、游戏版本、异常发生阶段和所选超分模式 | — |
 
 需要进一步排查时，可临时将 `OptiScaler.ini`（接入 OptiScaler 时）中 `Log` 下的 `LogLevel` 改为 `1（Debug）`或 `0（Trace）`，但诊断结束后应恢复正式配置以避免额外开销。
-不要把游戏账号、登录信息或包含个人信息的截图提交到公开 Issue。
+
+> [!CAUTION]
+> 不要把游戏账号、登录信息或包含个人信息的截图提交到公开 Issue。
 
 ## 第三方组件
 
@@ -249,23 +337,19 @@ Bridge 和反虚化组件默认会保留错误日志（接入 OptiScaler/ReShade
 
 本项目采用 [GPL-3.0-or-later](Dx11FsrBridge/LICENSE)。你可以使用、修改和再分发代码；分发修改版本时必须同时提供对应完整源码，并以 GPL-3.0-or-later 发布。
 
+<div align="center">
+  <sub>Genshin FSR Bridge · GPL-3.0-or-later · <a href="https://github.com/AizawaHikaru233/genshin_fsr_brigde/releases">Releases</a> · <a href="https://github.com/AizawaHikaru233/genshin_fsr_brigde/issues">Issues</a></sub>
+</div>
+
 ## DLSSNR / ReShade 插件包（本 fork 附件）
 
-本 fork 的 Release 附件中增加了一个基于 Genshin FSR Bridge v2.3.1 的 DLSSNR / ReShade 兼容包：
+本 fork 的 Release 附件中增加了一个基于 Genshin FSR Bridge 2.4.0 的 DLSSNR / ReShade 兼容包：
 
-- `GenshinFSRBridge_v2.3.1_NR_ReShade_v0.7.12.zip`
-- 内置 AMD Neural Rendering ReShade add-on v0.7.12 的中文重编译版本；在 ReShade 的 **Home -> Add-ons -> AMD Neural Rendering -> Language** 中选择 `中文`。
-- v0.7.12 更新了 Feed.fx 静止画面运动场重试、D3D11 深度缓冲筛选、FLAT 深度处理、间接绘制计数，以及 mochizuki 网络尺寸参数恢复。
-- 保留 `AMD_Neural_Feed.fx`、`dlssnr_amd_pass1.dll` 和 `dlssnr_on_amd_weights.bin`，安装器会在复制运行时文件前逐项检查大小和 SHA-256。
-- 原有 Bridge、OptiScaler、AntiPlayerMosaic、TextureLoader 等组件保持原包结构，不替换原神客户端文件。
-- 中文界面使用 UTF-8；如果 ReShade/ImGui 当前字体没有 CJK 字形，中文可能显示为空框。此插件包没有捆绑字体文件。
+- `GenshinFSRBridge_v2.4.0_NR_ReShade_OpenNR.zip`
+- 内置 OpenNR ReShade add-on v0.7.14 的简体中文重编译版本；在 ReShade 的 **Home -> Add-ons -> OpenNR -> Language** 中选择 `中文`。
+- 同步 v0.7.13/v0.7.14 的 mochizuki 新运行时、HIP 设备匹配回退、SDR 帧处理和 OpenNR 面板改名。
+- 保留 `AMD_Neural_Feed.fx`、`dlssnr_amd_pass1.dll` 和 `dlssnr_on_amd_weights.bin` 等游戏目录文件名；安装器会在复制运行时文件前逐项检查大小和 SHA-256。
+- Bridge 2.4.0 的图形安装器和原有组件按上游结构同步；不替换原神客户端文件。
+- 中文界面使用 UTF-8；如果 ReShade/ImGui 当前字体没有 CJK 字形，中文可能显示为空框。此插件包会随 OpenNR 安装器提供 MiSans 字体资源。
 
-本次附件中的 `amd-nr.addon64`：
-
-```text
-大小：723968 字节
-SHA-256：8CA59630A4685ACA44401CE87B6F39B09E0726897AD41A97A6F5B4F3BDA45D48
-```
-
-该 DLL 使用 Visual Studio MSVC 和 Windows SDK 重新编译，并通过面板测试；发布包内的
-`scripts/NeuralRendering.ps1`、`AMD-NR-SHA256SUMS.txt` 和 `AMD-NR-README.md` 已同步更新。
+该附件使用 OpenNR v0.7.14 的中文重编译 DLL，并同步上游 v0.7.14 的源码与构建测试。发布包中的 runtime 版本和具体 SHA-256 以随包的 `AMD-NR-SHA256SUMS.txt` 为准。
