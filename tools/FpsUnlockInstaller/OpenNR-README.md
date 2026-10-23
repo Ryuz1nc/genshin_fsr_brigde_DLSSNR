@@ -4,8 +4,12 @@ This compatibility package includes the locally built Simplified Chinese OpenNR
 ReShade add-on, the AMD Neural Rendering runtime v0.6.0, the neural-network
 weights, and the optional `AMD_Neural_Feed.fx` shader.
 
-When ReShade is selected in the package installer, the add-on and shader are
-installed under `ReShade/reshade-shaders`. The runtime DLL and weights are
+Extract the complete archive and run `GenshinFSRBridgeInstaller.exe`. Select
+the game executable and the optional **ReShade + RenoDX + OpenNR** component.
+If ReShade is marked as missing, click its **Download** button to fetch the
+official full add-on runtime before installing.
+The add-on and shader remain under `payload/ReShade/reshade-shaders` and
+are loaded through the configured ReShade search paths. The runtime DLL and weights are
 copied beside `YuanShen.exe` or `GenshinImpact.exe`. The installer verifies the
 size and SHA-256 of every bundled file before copying; it upgrades the v0.4.3
 runtime from the previous compatibility package and stops if an unrecognized
@@ -33,9 +37,10 @@ Reconstruction, Frame Generation, and Neural Rendering. Download
 Its license prohibits repackaging or redistribution, so this compatibility
 package does not contain the installer.
 
-NeuralHub requires the user's own copies of `nvngx_dlssnr.dll`,
-`nvngx_dlss.dll`, `nvngx_dlssd.dll`, and `nvngx_dlssg.dll`. The copies checked
-for this package are version `310.9.16.0`; import the files into NeuralHub after
+NeuralHub's Neural Rendering feature requires the user's own `nvngx_dlssnr.dll`.
+The other features can additionally use `nvngx_dlss.dll`, `nvngx_dlssd.dll`,
+and `nvngx_dlssg.dll`. The four copies checked for this package are version
+`310.9.16.0`; import the needed files into NeuralHub after
 installing it. These NVIDIA files are not included in the public release.
 
 NeuralHub's v0.8.0 documentation targets DirectX 12 games. This package's

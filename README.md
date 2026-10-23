@@ -376,3 +376,21 @@ Bridge fork 的源码分支已合并上游 v2.4.0。已发布的 DLSSNR 兼容�
 Release：<https://github.com/Ryuz1nc/genshin_fsr_brigde_DLSSNR/releases/tag/v2.4.0-dlssnr-v0.7.14-neuralhub-v0.8.0>
 
 - 附件：`GenshinFSRBridge_v2.4.0_DLSSNR-v0.7.14_NeuralHub-v0.8.0.7z`
+
+## 2.4.0 GUI 兼容包（gui.1）
+
+本节是本 fork 的 GUI 发布入口。上面两节的 2.4.0 链接对应此前的构建记录；
+实际发布的 GUI 包使用下面的标签与文件名。
+
+- Release：<https://github.com/Ryuz1nc/genshin_fsr_brigde_DLSSNR/releases/tag/v2.4.0-dlssnr-v0.7.14-gui.1>
+- 安装包：`GenshinFSRBridge_v2.4.0_OpenNR-v0.7.14_GUI.1.7z`。完整解压后运行根目录的 `GenshinFSRBridgeInstaller.exe`，不要单独移动 exe。
+- 组件：Bridge 2.4.0、OpenNR 中文版 0.7.14、AMD runtime 0.6.0 及权重。GUI 与解帧工具均包含在包内。
+- 选择游戏 exe，在「ReShade + RenoDX + OpenNR」右侧点「下载」补齐官网的 ReShade 完整 Add-on 运行时，再勾选并安装。OpenNR 插件与 Feed 留在 payload，runtime 和权重经校验后写到游戏目录。
+- 支持识别并升级旧兼容包的 runtime 0.4.3；相同文件跳过复制，未知同名文件会保留并报错。
+- 游戏内在 ReShade 的 Add-ons 页启用默认关闭的 OpenNR；中文显示需要支持 CJK 的字体。
+- GUI 的检查更新与缺件下载已指向本 fork，包版本记录完整标签，避免同一 Bridge 版本的包被误判。
+
+Danielblnc NeuralHub 0.8.0 仍通过[官方 Release](https://github.com/danielblnc/DLSS-NR-on-AMD/releases/tag/v0.8.0)单独获取，
+在其界面导入自己取得的 `nvngx_dlssnr.dll`；其他三个 DLSS DLL 按需导入。
+附件中四个已核验的 NVIDIA DLL 版本为 `310.9.16.0`，不随公开包分发。
+NeuralHub 的 DX12 路径未在本包的原神 DX11 路径验证；本包中可安装的神经渲染组件是 ReShade OpenNR。

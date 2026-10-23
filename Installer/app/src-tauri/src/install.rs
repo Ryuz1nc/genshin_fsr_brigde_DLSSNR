@@ -36,7 +36,7 @@ fn err(component: &str, message: impl Into<String>) -> Outcome {
 }
 
 /// 逐组件写各自需要的那份配置，最后写 fps_config.json 的注入链。
-/// 插件本体一律留在 payload，不往游戏目录复制任何 DLL。
+/// 注入的插件留在 payload；OpenNR 的 runtime 和权重按其要求部署到游戏目录。
 pub fn apply(
     game_exe: &Path,
     fps: i32,
@@ -319,6 +319,7 @@ fn prepare_opti(settings: &Settings) -> Result<(), String> {
 
 /// ReShade.ini 落在游戏目录；三处 payload 路径每次刷新，游戏目录的两处只在为空时写。
 fn prepare_reshade(game_dir: &Path) -> Result<(), String> {
+    crate::open_nr::install(&paths::payload_dir().join("ReShade"), game_dir)?;
     let shader_dir = paths::payload_dir().join("ReShade").join("reshade-shaders");
     let ini_path = game_dir.join("ReShade.ini");
     let preset_path = game_dir.join("ReShadePreset.ini");

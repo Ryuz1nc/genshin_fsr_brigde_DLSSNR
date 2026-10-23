@@ -21,7 +21,7 @@ use std::fs;
 
 const RESHADE_SETUP_URL: &str = "https://reshade.me/downloads/ReShade_Setup_6.8.0_Addon.exe";
 const RELEASE_API: &str =
-    "https://api.github.com/repos/AizawaHikaru233/genshin_fsr_brigde/releases/latest";
+    "https://api.github.com/repos/Ryuz1nc/genshin_fsr_brigde_DLSSNR/releases/latest";
 /// 与旧脚本 Configure.ps1 相同的候选线路：直连 + 三个 GitHub 加速前缀。
 const MIRRORS: &[&str] = &["", "https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.net/"];
 const UA: &str = "GenshinFSRBridgeInstaller";

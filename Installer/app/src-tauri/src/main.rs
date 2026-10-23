@@ -11,6 +11,7 @@ mod install;
 mod launch;
 mod log;
 mod logs;
+mod open_nr;
 mod paths;
 mod pkg;
 mod settings;
@@ -853,7 +854,7 @@ fn open_in_explorer(path: &std::path::Path) {
 }
 
 /// 插件包发布页：整包更新入口（不做单插件在线更新）。
-const RELEASES_URL: &str = "https://github.com/AizawaHikaru233/genshin_fsr_brigde/releases";
+const RELEASES_URL: &str = "https://github.com/Ryuz1nc/genshin_fsr_brigde_DLSSNR/releases";
 
 fn on_open_path(app: &AppHandle, what: &str) {
     if what == "releases" {

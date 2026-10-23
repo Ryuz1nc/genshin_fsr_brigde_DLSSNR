@@ -50,11 +50,17 @@ pub const CATALOG: &[Component] = &[
     },
     Component {
         id: "reshade",
-        name: "ReShade + RenoDX",
-        note: "HDR 增强（选装）",
+        name: "ReShade + RenoDX + OpenNR",
+        note: "HDR 增强 / OpenNR 神经渲染（选装）",
         mandatory: false,
         dll: "ReShade\\ReShade64.dll",
-        files: &["ReShade\\ReShade64.dll", "ReShade\\reshade-shaders"],
+        files: &[
+            "ReShade\\ReShade64.dll",
+            "ReShade\\reshade-shaders\\Addons\\amd-nr.addon64",
+            "ReShade\\reshade-shaders\\Shaders\\AMD_Neural_Feed.fx",
+            "ReShade\\NeuralRuntime\\dlssnr_amd_pass1.dll",
+            "ReShade\\NeuralRuntime\\dlssnr_on_amd_weights.bin",
+        ],
     },
     Component {
         id: "texture",

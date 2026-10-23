@@ -1,8 +1,9 @@
 # Genshin FSR Bridge 安装器（Tauri 版）
 
 用 FPS Unlocker、Dx11FsrBridge、OptiScaler、ReShade + RenoDX、TextureLoader、AntiPlayerMosaic
-给原神配一套图形外挂链的本地安装器。组件本体全部留在 `payload\`，安装 = 把选中组件的绝对路径
-写进 `payload\FpsUnlocker\fps_config.json` 的 `DllList`（注入链），游戏目录里一个 DLL 都不落。
+给原神配一套图形外挂链的本地安装器。注入组件留在 `payload\`，安装时把选中组件的绝对路径
+写进 `payload\FpsUnlocker\fps_config.json` 的 `DllList`（注入链）。本 fork 的 OpenNR runtime
+和权重需要复制到游戏目录，详见下面的 OpenNR 说明。
 界面是 `..\ui\index.html`（HTML/CSS/JS），外壳与后端是 Tauri + Rust。
 
 ## 构建
@@ -32,7 +33,8 @@ CDP 驱动脚本在 `..\tools\wv.mjs`（`eval` / `shot` / `press` / `targets`）
 仓库根目录的 `Build-OnlineInstaller.ps1` 默认就打这个 GUI 安装器（旧的 PS1 流程要显式加 `-ScriptInstaller`）：
 
 ```powershell
-.\Build-OnlineInstaller.ps1
+.\Build-OnlineInstaller.ps1 -GithubOnly -OpenNrPayloadDirectory '<四个 OpenNR 资源所在目录>' `
+  -PackageVersion 'v2.4.0-dlssnr-v0.7.14-gui.1'
 ```
 
 - 包根没有 `Installer.ps1` / `一键配置.bat` / `scripts\*.ps1`，换成 `GenshinFSRBridgeInstaller.exe`
@@ -42,7 +44,7 @@ CDP 驱动脚本在 `..\tools\wv.mjs`（`eval` / `shot` / `press` / `targets`）
 - 其余照旧：`payload\{AMD,Bridge,AntiPlayerMosaic,OptiScaler,ReShade,TextureLoader,default_config}`、
   `license\`、`Package-Version.txt`、`upstream-versions.json`；
   本地包与 GitHub 包只差打包范围，具体包含哪些组件按实际构建结果处理，缺的由安装器联网补齐。
-- 产物：`dist\原神解帧FSR插件包_v<ver>.7z`（本地包，≤100 MB）与
+- 产物：`dist\原神解帧FSR插件包_v<ver>.7z`（本地包）与
   `dist\github-release\GenshinFSRBridge_v<ver>.7z`（GitHub，同样是 7z）。
 - 本机跑打包时若 `vcvars64.bat` 起不来（cmd 报 “\Windows was unexpected at this time”），
   先在当前 shell 里补 `LIB` / `INCLUDE`（MSVC lib\x64 + Windows Kits `Lib\<ver>\{ucrt,um}\x64`），
@@ -68,7 +70,7 @@ CDP 驱动脚本在 `..\tools\wv.mjs`（`eval` / `shot` / `press` / `targets`）
 
 ## 打包结构
 
-与旧脚本安装包一致：exe 在包根目录，组件全在 `payload\`，`Package-Version.txt` 是包版本。
+exe 在包根目录，组件资源在 `payload\`，`Package-Version.txt` 是完整的 fork 发布标签。
 
 ```
 GenshinFSRBridge\
@@ -78,7 +80,8 @@ GenshinFSRBridge\
     FpsUnlocker\unlockfps_nc.exe        ← 解帧工具原地运行，fps_config.json 也在这里
     Bridge_v2.2.0\Dx11FsrBridge.dll
     OptiScaler_v0.9.4\OptiScaler.dll
-    ReShade\ReShade64.dll
+    ReShade\ReShade64.dll              ← GitHub 包由安装器从 ReShade 官网补齐
+    ReShade\NeuralRuntime\…            ← OpenNR runtime 和权重的部署源
     TextureLoader\…
     AntiPlayerMosaic\…
     AMD\amd_fidelityfx_upscaler_dx12.dll ← Bridge 的 FSR2/3 回退后端
@@ -138,7 +141,8 @@ GenshinFSRBridge\
 > **启动时自愈**：每次打开安装器，`setup()` 里会跑一遍 `reapply()` —— 按当前设置重写
 > OptiScaler 的 `OptiDllPath`、ReShade 的 `AddonPath` / `EffectSearchPaths` / `TextureSearchPaths`、
 > 以及解帧工具 `fps_config.json` 的注入链 `DllList`，顺手把已经不存在的条目清掉。
-> 组件文件本身不复制；没有游戏目录或 payload 时只写一行日志跳过。
+> 选中 ReShade 时还会校验 OpenNR 资源，并补齐游戏目录中缺失的 runtime 和权重；
+> 已正确安装的文件不会重复复制。没有游戏目录或 payload 时只写一行日志跳过。
 
 - **只补缺的**：目标文件已存在就跳过，用户自己换过版本不会被覆盖。
 - **ReShade**：从 reshade.me 下官方安装器（PA 里挂了 zip），按 512 字节对齐扫 `PK\x03\x04`
@@ -242,6 +246,20 @@ Windows 的 `curl.exe` 并不保证存在（本机 `System32` 里就没有）。
 - BetterGI：启动选项卡 - 同时启动原神 - 原神安装位置，同样选中 `unlockfps_nc.exe`（英文用本项目的译法）。
 - 芙芙启动器（FuFuLauncher）：插件已上架插件商城，在商城装「FSR-Bridge-Plugin（原神FSR2桥接插件）」后用芙芙启动即可，不需要填路径。
 - `state` 字段：`desktopShortcut` / `unlockerDir` / `shortcutName`。
+
+## OpenNR（AMD 显卡）
+
+勾选「ReShade + RenoDX + OpenNR」后，GUI 校验四个 OpenNR 资源的大小与 SHA-256，
+再将 `dlssnr_amd_pass1.dll` 和 `dlssnr_on_amd_weights.bin` 部署到游戏 exe 同目录。
+插件与 Feed shader 仍留在 `payload\ReShade\reshade-shaders`，由 ReShade 的搜索路径加载。
+GitHub 包不内置 `ReShade64.dll`，安装时从 ReShade 官网下载完整 Add-on 版本。
+
+已知的 v0.4.3 runtime 会升级到 v0.6.0；遇到未知版本的同名文件会报错并保留该文件。
+启动游戏后在 ReShade 的 Add-ons 页启用默认关闭的 OpenNR。需要 AMD RDNA2/3/4；
+RDNA2 还需要 HIP SDK 7.2。中文显示需要支持 CJK 的 ReShade/ImGui 字体，包内没有字体。
+详细说明见包根的 `AMD-NR-README.md`。
+
+GUI 的检查更新、缺件下载和 GitHub Releases 按钮均指向本 fork。
 
 ## NVIDIA DLSS 运行时（RTX 显卡 + OptiScaler）
 

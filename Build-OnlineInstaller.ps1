@@ -38,7 +38,10 @@ param(
     # 含 OpenNR 插件、Feed 和 runtime 文件的已校验资源目录。
     [string]$OpenNrPayloadDirectory,
     # 构建输出目录。默认仍使用仓库内 dist；相对路径按仓库根目录解析。
-    [string]$OutputDirectory
+    [string]$OutputDirectory,
+    # fork 的发布标签；留空沿用 Bridge 版本。用于安装器判断同一 Bridge 版本的包更新。
+    [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]*$')]
+    [string]$PackageVersion
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -424,7 +427,8 @@ function Prepare-FpsStage {
         Copy-Item -LiteralPath $readmeAssets -Destination (Join-Path $Stage 'assets\readme') -Recurse -Force
     }
     Copy-Item -LiteralPath (Join-Path $packageAssets 'Feedback.txt') -Destination $Stage -Force
-    [IO.File]::WriteAllText((Join-Path $Stage 'Package-Version.txt'), "$Version`r`n", [Text.UTF8Encoding]::new($false))
+    $packageIdentity = if ([string]::IsNullOrWhiteSpace($PackageVersion)) { $Version } else { $PackageVersion }
+    [IO.File]::WriteAllText((Join-Path $Stage 'Package-Version.txt'), "$packageIdentity`r`n", [Text.UTF8Encoding]::new($false))
     # 上游版本基线（Configure.ps1 / ReShadeResources.ps1 按此下载缺失组件，保持构建基线一致）。
     $upstreamVersions = Join-Path $root 'SharedResources\upstream-versions.json'
     if (Test-Path -LiteralPath $upstreamVersions -PathType Leaf) {
@@ -445,9 +449,6 @@ function Prepare-FpsStage {
     $stageAmd = Join-Path $payload 'AMD'
     $stageDefaults = Join-Path $payload 'default_config'
     New-Item -ItemType Directory -Path $payload, $stagePayloadBridge, $stagePayloadAnti, $stagePayloadReShade, $stagePayloadTextureLoader, $stageOpti, $stageAmd, $stageDefaults -Force | Out-Null
-    if (-not $ScriptInstaller) {
-        throw 'OpenNR is wired into the script installer. Build this compatibility package with -ScriptInstaller.'
-    }
     if (-not $ScriptInstaller) {
         $stageFpsUnlocker = Join-Path $payload 'FpsUnlocker'
         New-Item -ItemType Directory -Path $stageFpsUnlocker -Force | Out-Null
